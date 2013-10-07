@@ -247,13 +247,16 @@ OE.EditorGridField = Ext.extend(Ext.grid.EditorGridPanel, {
                 var recordCountMsg = (messagesBundle['input.datasource.default.records'] || 'Records') +
                     ' : ' + store.getCount();
                 grid.getBottomToolbar().get(2).setText(recordCountMsg);
-
+                
                 //Enable/Disable error button
-                if (Ext.getCmp(gridHiddenFld).isValid()) {
-                    grid.getBottomToolbar().get(0).disable(true);
-                } else {
-                    grid.getBottomToolbar().get(0).enable(true);
-                }
+				if(Ext.getCmp(gridHiddenFld).isValid()){
+					grid.getBottomToolbar().get(0).setVisible(false);
+					grid.getBottomToolbar().get(0).setTooltip('')
+				}
+				else {
+					grid.getBottomToolbar().get(0).setVisible(true);
+					grid.getBottomToolbar().get(0).setTooltip(isGridDataValid(false, true))
+				}
             }
         }
 
@@ -272,31 +275,12 @@ OE.EditorGridField = Ext.extend(Ext.grid.EditorGridPanel, {
                 singleSelect: true
             }),
             keys: keys,
-            bbar: [
-                {
-                    // TODO semantic CSS
-                    text: '<span style="color: red">' +
-                        (messagesBundle['input.datasource.default.error'] || 'Error') +
-                        '</span>',
-                    handler: function () {
-                        var errorMessage = isGridDataValid(false, true);
-                        if (errorMessage.length > 0) {
-                            Ext.Msg.show({
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.Msg.ERROR,
-                                title: messagesBundle['input.datasource.default.error'] || 'Error',
-                                msg: errorMessage
-                            });
-                        } else {
-                            Ext.Msg.show({
-                                buttons: Ext.Msg.OK,
-                                icon: Ext.Msg.INFO,
-                                title: '',
-                                msg: messagesBundle['input.datasource.default.noErrorMessage'] || 'No error found!'
-                            });
-                        }
-                    }
-                },
+            bbar: [{
+	            	tooltip: messagesBundle['input.datasource.grid.error.requiredAtleastOneRow'] || 
+		            	'This is a required field. It must have atleast one row.',
+		            icon:  OE.util.getUrl('/../images/exclamation.gif'),
+		            visible: false
+            	},
                 '->',
                 {
                     xtype: 'tbtext',
@@ -470,8 +454,10 @@ OE.EditorGridField = Ext.extend(Ext.grid.EditorGridPanel, {
                 }
             };
 
-            var win = OE.uploadCSVForm(configuration);
-            win.show();
+
+            require(['CsvUploadWindow'], function (OE) {
+                new OE.CsvUploadWindow(configuration).show();
+            });
         }
 
         function addNewRow (grid) {
